@@ -22,10 +22,10 @@ jobs:
           cache: maven
 
       - name: Run Chrome Tests
-        run: mvn test -Dbrowser=chrome
+        run: mvn test -Dbrowser=chrome -Dheadless=true
 
       - name: Run Firefox Tests
-        run: mvn test -Dbrowser=firefox
+        run: mvn test -Dbrowser=firefox -Dheadless=true
 
       - name: Generate Allure Report
         run: mvn allure:report
