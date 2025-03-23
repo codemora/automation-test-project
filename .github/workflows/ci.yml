@@ -22,9 +22,11 @@ jobs:
 
       - name: Run Web Tests (chrome)
         run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="chrome" -Dheadless=true
+        if: always()
 
       - name: Run Web Tests (firefox)
         run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="firefox" -Dheadless=true
+        if: always()
 
       # Create logs directory if it doesn't exist
       - name: Ensure logs directory exists
