@@ -1,94 +1,44 @@
-name: Cucumber Selenium Tests with Allure Report
+name: Cucumber Selenium Tests
 
 on:
   push:
-    branches: [main, master]
+    branches: [ main, master ]
   pull_request:
-    branches: [main, master]
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        browser: [chrome, firefox]
-      fail-fast: false
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
 
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: maven
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
+      - name: Run Chrome Tests
+        run: mvn test -Dbrowser=chrome
 
-      - name: Run Cucumber Tests
-        run: mvn test -Dbrowser=${{ matrix.browser }}
-
-      - name: Store Test Results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: allure-results-${{ matrix.browser }}
-          path: target/allure-results
-
-  report:
-    needs: test
-    runs-on: ubuntu-latest
-    if: always()
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Set up JDK 21
-        uses: actions/setup-java@v3
-        with:
-          java-version: '21'
-          distribution: 'temurin'
-
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Download Test Results
-        uses: actions/download-artifact@v4
-        with:
-          path: allure-results
-          pattern: allure-results-*
-          merge-multiple: false
-
-      - name: Prepare Allure Results
-        run: |
-          mkdir -p target/allure-results
-          find allure-results -type f -mindepth 2 -maxdepth 2 -exec mv {} target/allure-results/ \;
-          ls -la target/allure-results/
+      - name: Run Firefox Tests
+        run: mvn test -Dbrowser=firefox
 
       - name: Generate Allure Report
-        uses: simple-elf/allure-report-action@master
-        if: always()
-        with:
-          allure_results: target/allure-results
-          allure_history: allure-history
-          keep_reports: 20
+        run: mvn allure:report
 
-      - name: Deploy report to Github Pages
-        if: always()
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v3
+        with:
+          name: allure-results
+          path: target/allure-results
+
+      - name: Deploy report to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./target/site/allure-maven-plugin
           publish_branch: gh-pages
-          publish_dir: allure-history
