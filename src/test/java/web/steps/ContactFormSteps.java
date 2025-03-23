@@ -1,11 +1,13 @@
 package web.steps;
 
 import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.qameta.allure.Allure;
+import io.qameta.allure.AllureLifecycle;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
 import org.junit.Assert;
@@ -23,9 +25,7 @@ import web.utils.DriverFactory;
 import java.io.ByteArrayInputStream;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static org.openqa.selenium.remote.http.HttpMethod.POST;
 
 public class ContactFormSteps {
@@ -35,6 +35,7 @@ public class ContactFormSteps {
     private Har har;
     private List<HarEntry> entries;
     private ContactPage contactPage;
+    private String currentBrowser;
 
     private void setupServerErrorSimulator() {
         NetworkInterceptor interceptor = new NetworkInterceptor(
@@ -47,10 +48,28 @@ public class ContactFormSteps {
         );
     }
 
-    @Given("I am on the contact page")
-    public void navigateToContactPage() {
+    @Before
+    public void beforeScenario(Scenario scenario) {
         driverFactory = DriverFactory.getInstance();
         driver = driverFactory.getDriver();
+        currentBrowser = driverFactory.getCurrentBrowser();
+        // Get original scenario name
+        String originalScenarioName = scenario.getName();
+        String updatedScenarioName = originalScenarioName + " [Browser: " + currentBrowser + "]";
+
+        // Update Allure test name dynamically
+        AllureLifecycle lifecycle = Allure.getLifecycle();
+        String scenarioId = scenario.getId(); // Unique ID for the scenario
+        lifecycle.updateTestCase(scenarioId, testResult ->
+                testResult.setName(updatedScenarioName)
+        );
+
+        // Optionally, set a parameter for the report
+        Allure.parameter("Browser", currentBrowser);
+    }
+
+    @Given("I am on the contact page")
+    public void navigateToContactPage() {
         contactPage = ContactPage.load(driver);
     }
 

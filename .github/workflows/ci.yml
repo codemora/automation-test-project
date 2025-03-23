@@ -1,45 +1,52 @@
-name: Cucumber Selenium Tests
-
+name: Java CI with Maven
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:
-
 jobs:
   test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
-
       - name: Set up JDK 21
         uses: actions/setup-java@v3
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
-
-      - name: Run Chrome Tests
-        run: mvn test -Dbrowser=chrome -Dheadless=true
-
-      - name: Run Firefox Tests
-        run: mvn test -Dbrowser=firefox -Dheadless=true
-
-      - name: Generate Allure Report
-        run: mvn allure:report
+      - name: Build and Test
+        run: mvn clean test
+      # Create logs directory if it doesn't exist
+      - name: Ensure logs directory exists
+        run: mkdir -p logs
         if: always()
-
-      - name: Upload Allure results
+      # Upload log files as artifacts
+      - name: Upload logs
         uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: allure-results
-          path: target/allure-results
-
-      - name: Deploy report to GitHub Pages
+          name: test-logs
+          path: logs/
+          retention-days: 14
+      - name: Get Allure history
+        uses: actions/checkout@v3
+        if: always()
+        continue-on-error: true
+        with:
+          ref: gh-pages
+          path: gh-pages
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+          keep_reports: 20
+      - name: Deploy report to Github Pages
+        if: always()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./target/site/allure-maven-plugin
           publish_branch: gh-pages
+          publish_dir: allure-history
