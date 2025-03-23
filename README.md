@@ -81,12 +81,15 @@
 1. Enable **GitHub Pages** in repository settings (optional for report viewing)
 
 ### Viewing CI Results
-- Check **GitHub Actions** tab for test run status
+- Check **GitHub Actions** tab for **pages build and deployment** job
 - Download **Allure results** from artifacts
 - View deployed report at:
   ```
   https://<username>.github.io/<repository>/<reportNumber>/index.html
   ```
+### Viewing Test Logs
+- Check **GitHub Actions** tab for test run status
+- Download **Test Logs** from artifacts
 
 ---
 
