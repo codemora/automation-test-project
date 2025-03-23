@@ -22,6 +22,14 @@ Feature: OpenWeather API Testing
     Then I should receive a 200 status code
     And the response should contain 5-day forecast data
 
+#  Scenario: Test city name boundary - minimum length
+#    When I request current weather for "A"
+#    Then I should receive a 200 status code
+
+#  Scenario: Test city name boundary - maximum length
+#    When I request current weather for "ThisIsAVeryLongCityNameThatExceedsNormalLength"
+#    Then I should receive a 200 status code
+
   Scenario: Test SQL injection in city parameter
     When I request current weather for "' OR '1'='1"
     Then I should receive a 404 status code
