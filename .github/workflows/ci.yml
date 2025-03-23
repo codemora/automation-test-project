@@ -35,18 +35,18 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Set up Chrome
-      - name: Setup Chrome
-        if: matrix.browser == 'chrome'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+#      # Set up Chrome
+#      - name: Setup Chrome
+#        if: matrix.browser == 'chrome'
+#        run: |
+#          sudo apt-get update
+#          sudo apt-get install -y google-chrome-stable
 
-      # Set up Firefox
-      - name: Setup Firefox
-        if: matrix.browser == 'firefox'
-        run: |
-          sudo apt-get install -y firefox
+#      # Set up Firefox
+#      - name: Setup Firefox
+#        if: matrix.browser == 'firefox'
+#        run: |
+#          sudo apt-get install -y firefox
 
       # Run tests
       - name: Run Cucumber Tests
