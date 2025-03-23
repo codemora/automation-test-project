@@ -1,12 +1,9 @@
 package api.utils;
 
 import io.restassured.response.Response;
-import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import utils.ConfigUtils;
-
-import java.util.List;
 
 import static io.restassured.RestAssured.given;
 
@@ -59,25 +56,5 @@ public class APIUtils {
             logger.error("Failed to extract forecast temperature from response", e);
             throw new RuntimeException("Forecast temperature extraction failed: " + e.getMessage(), e);
         }
-    }
-
-    public static void validateWeatherResponse(Response response) {
-        Assert.assertNotNull("Weather response missing temperature",
-                response.jsonPath().get("main.temp"));
-        List<?> weatherList = response.jsonPath().getList("weather");
-        Assert.assertFalse("Weather response missing weather array or empty",
-                weatherList.isEmpty());
-        Assert.assertNotNull("Weather response missing city name",
-                response.jsonPath().get("name"));
-        logger.debug("Weather response structure validated");
-    }
-
-    public static void validateForecastResponse(Response response) {
-        List<?> forecastList = response.jsonPath().getList("list");
-        Assert.assertFalse("Forecast response missing list or empty",
-                forecastList.isEmpty());
-        Assert.assertNotNull("Forecast response missing temperature for first entry",
-                response.jsonPath().get("list[0].main.temp"));
-        logger.debug("Forecast response structure validated");
     }
 }

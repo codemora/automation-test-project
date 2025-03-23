@@ -3,9 +3,12 @@ package api.steps;
 import io.cucumber.java.en.*;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
+import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import api.utils.APIUtils;
+
+import java.util.List;
 
 public class WeatherAPISteps {
     private static final Logger logger = LoggerFactory.getLogger(WeatherAPISteps.class);
@@ -47,18 +50,32 @@ public class WeatherAPISteps {
 
     @Then("I should receive a {int} status code")
     public void verifyStatusCode(int statusCode) {
-        response.then().statusCode(statusCode);
+        Assert.assertEquals("Incorrect Status Code", statusCode, response.statusCode());
         logger.info("Status code verified: {}", statusCode);
     }
 
     @Then("the response should contain weather data")
     public void verifyWeatherData() {
-        APIUtils.validateWeatherResponse(response);
+        Assert.assertNotNull("Weather response missing temperature",
+                response.jsonPath().get("main.temp"));
+        List<?> weatherList = response.jsonPath().getList("weather");
+        Assert.assertFalse("Weather response missing weather array or empty",
+                weatherList.isEmpty());
+        Assert.assertNotNull("Weather response missing city name",
+                response.jsonPath().get("name"));
+        logger.debug("Weather response structure validated");
+
     }
 
     @Then("the response should contain 5-day forecast data")
     public void verifyForecastData() {
-        APIUtils.validateForecastResponse(response);
+        List<?> forecastList = response.jsonPath().getList("list");
+        Assert.assertFalse("Forecast response missing list or empty",
+                forecastList.isEmpty());
+        Assert.assertNotNull("Forecast response missing temperature for first entry",
+                response.jsonPath().get("list[0].main.temp"));
+        logger.debug("Forecast response structure validated");
+
     }
 
     @Then("the current temperature should match forecast for today")
