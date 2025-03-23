@@ -22,7 +22,6 @@ import web.utils.DriverFactory;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
-import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.openqa.selenium.remote.http.HttpMethod.POST;
@@ -45,17 +44,6 @@ public class ContactFormSteps {
                         .to(() -> req -> new HttpResponse()
                                 .setStatus(500))
         );
-    }
-
-    private void updateTestNameAndHistoryIdForAllure(String newName) {
-        Allure.getLifecycle().updateTestCase(testResult -> testResult.setName(newName));
-        String customHistoryId = generateConsistentHistoryId(newName, currentBrowser);
-        Allure.getLifecycle().updateTestCase(testResult -> testResult.setHistoryId(customHistoryId));
-    }
-
-    private String generateConsistentHistoryId(String newName, String browserName) {
-        String baseString = newName + browserName;
-        return UUID.nameUUIDFromBytes(baseString.getBytes()).toString();
     }
 
     @Given("I am on the contact page")
@@ -191,7 +179,6 @@ public class ContactFormSteps {
 
     @After
     public void cleanup(Scenario scenario) {
-        updateTestNameAndHistoryIdForAllure(scenario.getName());
         try {
             if (scenario.isFailed() && driver != null) {
                 logger.info("Test failed, capturing screenshot");
