@@ -30,7 +30,7 @@ Feature: Contact Form Testing
     Then I should see a success message after waiting
 
   Scenario: Verify network logs during form submission
-    Given I am on the contact page
+    Given I am on the contact page with network logs
     When I fill in the contact form with "Test User" as name and "Test Message" as message
     And I submit the form
     Then I should see a success message after waiting

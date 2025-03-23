@@ -51,7 +51,6 @@ public class ContactFormSteps {
     public void navigateToContactPage() {
         driverFactory = DriverFactory.getInstance();
         driver = driverFactory.getDriver();
-        driverFactory.newHar();
         contactPage = ContactPage.load(driver);
     }
 
@@ -59,6 +58,14 @@ public class ContactFormSteps {
     public void navigateToContactPage(String browser) {
         driverFactory = DriverFactory.getInstance(browser);
         driver = driverFactory.getDriver();
+        contactPage = ContactPage.load(driver);
+    }
+
+    @Given("I am on the contact page with network logs")
+    public void navigateToContactPageWithNetworkLogs() {
+        driverFactory = DriverFactory.getInstance(true);
+        driver = driverFactory.getDriver();
+        driverFactory.newHar();
         contactPage = ContactPage.load(driver);
     }
 
