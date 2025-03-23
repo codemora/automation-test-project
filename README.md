@@ -18,7 +18,7 @@
 ### Run All Tests
 - **Normal mode**:
   ```sh
-  mvn test
+  mvn test -Dheadless=false
   ```
 - **Headless mode**:
   ```sh
@@ -33,7 +33,7 @@
 - **Web Tests**:
   - **Normal mode**:
     ```sh
-    mvn test -Dcucumber.filter.tags="@web"
+    mvn test -Dcucumber.filter.tags="@web" -Dheadless=false
     ```
   - **Headless mode**:
     ```sh
@@ -157,6 +157,9 @@
 - **Reports generated in Allure format**, including:
   - **Screenshots on UI test failures**
   - **CI results accessible via GitHub Actions**
+- #### Report Screenshot:
+![Allure Report](./src/test/resources/img/report_screenshot.png)
+[View Report](https://codemora.github.io/automation-test-project/45/index.html)
 
 ---
 
