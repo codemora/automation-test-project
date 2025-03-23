@@ -20,14 +20,8 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Run API Tests
-        run: mvn test -Dcucumber.filter.tags="@api"
-
-      - name: Run Web Tests (chrome)
-        run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="chrome" -Dheadless=true
-
-      - name: Run Web Tests (firefox)
-        run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="firefox" -Dheadless=true
+      - name: Build and Test
+        run: mvn clean test
 
       - name: Get Allure history
         uses: actions/checkout@v3
