@@ -65,7 +65,6 @@ public class ContactFormSteps {
     public void navigateToContactPageWithNetworkLogs() {
         driverFactory = DriverFactory.getInstance(true);
         driver = driverFactory.getDriver();
-        driverFactory.newHar();
         contactPage = ContactPage.load(driver);
     }
 
@@ -77,7 +76,6 @@ public class ContactFormSteps {
 
     @When("I submit the form")
     public void submitForm() {
-        driverFactory.newHar();
         contactPage.submitForm();
     }
 
