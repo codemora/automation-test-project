@@ -29,7 +29,7 @@ public class APIUtils {
     }
 
     public static void validateApiKey() {
-        if (API_KEY == null || API_KEY.equals("YOUR_API_KEY_HERE")) {
+        if (API_KEY == null) {
             logger.error("API key not configured properly in config.properties");
             throw new IllegalStateException("API key not configured");
         }
