@@ -26,72 +26,94 @@ public class DriverFactory {
     private WebDriver driver;
     private BrowserMobProxy proxy;
     private String currentBrowser;
+    private boolean useProxy;
 
-    private DriverFactory(String browser) {
+    private DriverFactory(String browser, boolean useProxy) {
+        this.useProxy = useProxy;
         initializeDriver(browser);
         currentBrowser = browser.toLowerCase();
     }
 
-    public static DriverFactory getInstance(String browser) {
+    public static DriverFactory getInstance(String browser, boolean useProxy) {
         DriverFactory instance = threadLocalInstance.get();
         String normalizedBrowser = browser != null ? browser.toLowerCase() : DEFAULT_BROWSER;
 
-        if (instance == null || !instance.currentBrowser.equals(normalizedBrowser)) {
+        if (instance == null || !instance.currentBrowser.equals(normalizedBrowser) || instance.useProxy != useProxy) {
             if (instance != null) {
-                logger.info("Thread {}: Reinitializing from {} to {}",
-                        Thread.currentThread().getId(), instance.currentBrowser, normalizedBrowser);
+                logger.info("Thread {}: Reinitializing from {} (proxy: {}) to {} (proxy: {})",
+                        Thread.currentThread().getId(), instance.currentBrowser, instance.useProxy,
+                        normalizedBrowser, useProxy);
                 instance.quit();
             }
-            instance = new DriverFactory(normalizedBrowser);
+            instance = new DriverFactory(normalizedBrowser, useProxy);
             threadLocalInstance.set(instance);
         }
         return instance;
     }
 
+    public static DriverFactory getInstance(String browser) {
+        return getInstance(browser, false); // Default to not using proxy
+    }
+
+    public static DriverFactory getInstance(boolean useProxy) {
+        return getInstance(DEFAULT_BROWSER, useProxy); // Default to not using proxy
+    }
+
     public static DriverFactory getInstance() {
-        return getInstance(DEFAULT_BROWSER);
+        return getInstance(DEFAULT_BROWSER, false); // Default to not using proxy
     }
 
     private void initializeDriver(String browser) {
         try {
-            proxy = new BrowserMobProxyServer();
-            proxy.start(0);
-
-            logger.info("Thread {}: BrowserMob Proxy started on port: {}",
-                    Thread.currentThread().getId(), proxy.getPort());
-
-            Proxy seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+            Proxy seleniumProxy = null;
+            if (useProxy) {
+                proxy = new BrowserMobProxyServer();
+                proxy.start(0);
+                logger.info("Thread {}: BrowserMob Proxy started on port: {}",
+                        Thread.currentThread().getId(), proxy.getPort());
+                seleniumProxy = ClientUtil.createSeleniumProxy(proxy);
+            }
 
             if ("chrome".equals(browser)) {
                 WebDriverManager.chromedriver().setup();
                 ChromeOptions options = new ChromeOptions();
-                options.setProxy(seleniumProxy);
+                if (useProxy && seleniumProxy != null) {
+                    options.setProxy(seleniumProxy);
+                }
                 options.setAcceptInsecureCerts(true);
                 options.addArguments("--start-maximized");
                 if (HEADLESS) {
                     configureHeadlessChrome(options);
                 }
                 driver = new ChromeDriver(options);
-            proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
-                logger.info("Thread {}: Chrome driver initialized{}",
-                        Thread.currentThread().getId(), HEADLESS ? " (headless)" : "");
+                if (useProxy) {
+                    proxy.enableHarCaptureTypes(CaptureType.REQUEST_CONTENT, CaptureType.RESPONSE_CONTENT);
+                }
+                logger.info("Thread {}: Chrome driver initialized{} {}",
+                        Thread.currentThread().getId(), HEADLESS ? " (headless)" : "",
+                        useProxy ? "(with proxy)" : "(without proxy)");
             } else if ("firefox".equals(browser)) {
                 WebDriverManager.firefoxdriver().setup();
                 FirefoxOptions options = new FirefoxOptions();
-                options.setProxy(seleniumProxy);
+                if (useProxy && seleniumProxy != null) {
+                    options.setProxy(seleniumProxy);
+                }
                 options.setAcceptInsecureCerts(true);
                 if (HEADLESS) {
                     configureHeadlessFirefox(options);
                 }
                 driver = new FirefoxDriver(options);
-                logger.info("Thread {}: Firefox driver initialized{}",
-                        Thread.currentThread().getId(), HEADLESS ? " (headless)" : "");
+                logger.info("Thread {}: Firefox driver initialized{} {}",
+                        Thread.currentThread().getId(), HEADLESS ? " (headless)" : "",
+                        useProxy ? "(with proxy)" : "(without proxy)");
             } else {
                 throw new IllegalArgumentException("Unsupported browser: " + browser);
             }
 
-            logger.debug("Thread {}: HAR capture initialized for {}",
-                    Thread.currentThread().getId(), browser);
+            if (useProxy) {
+                logger.debug("Thread {}: HAR capture initialized for {}",
+                        Thread.currentThread().getId(), browser);
+            }
 
         } catch (Exception e) {
             logger.error("Thread {}: Failed to initialize driver for {}",
@@ -116,8 +138,8 @@ public class DriverFactory {
     }
 
     public Har getHar() {
-        if (proxy == null) {
-            logger.error("Proxy is null, cannot get HAR");
+        if (!useProxy || proxy == null) {
+            logger.error("Proxy is not enabled or null, cannot get HAR");
             return null;
         }
         Har currentHar = proxy.getHar();
@@ -128,12 +150,20 @@ public class DriverFactory {
     }
 
     public void newHar() {
+        if (!useProxy || proxy == null) {
+            logger.error("Proxy is not enabled or null, cannot create new HAR");
+            return;
+        }
         proxy.newHar("formSubmission");
         logger.debug("Thread {}: New HAR capture started", Thread.currentThread().getId());
     }
 
     public String getCurrentBrowser() {
         return currentBrowser;
+    }
+
+    public boolean isUsingProxy() {
+        return useProxy;
     }
 
     public void quit() {
@@ -143,7 +173,7 @@ public class DriverFactory {
                 driver = null;
                 logger.info("Thread {}: WebDriver closed", Thread.currentThread().getId());
             }
-            if (proxy != null) {
+            if (useProxy && proxy != null) {
                 proxy.stop();
                 proxy = null;
                 logger.info("Thread {}: BrowserMob Proxy stopped", Thread.currentThread().getId());
