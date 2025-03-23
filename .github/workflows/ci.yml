@@ -23,6 +23,14 @@ jobs:
       - name: Build and Test
         run: mvn clean test
 
+      - name: Save Log File
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: api-tests-log
+          path: logs/api-tests.log
+          retention-days: 7
+
       - name: Get Allure history
         uses: actions/checkout@v3
         if: always()
