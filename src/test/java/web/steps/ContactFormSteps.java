@@ -1,13 +1,11 @@
 package web.steps;
 
 import io.cucumber.java.After;
-import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import io.qameta.allure.Allure;
-import io.qameta.allure.AllureLifecycle;
 import net.lightbody.bmp.core.har.Har;
 import net.lightbody.bmp.core.har.HarEntry;
 import org.junit.Assert;
@@ -24,6 +22,7 @@ import web.utils.DriverFactory;
 
 import java.io.ByteArrayInputStream;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.Assert.*;
 import static org.openqa.selenium.remote.http.HttpMethod.POST;
@@ -48,28 +47,22 @@ public class ContactFormSteps {
         );
     }
 
-    @Before
-    public void beforeScenario(Scenario scenario) {
-        driverFactory = DriverFactory.getInstance();
-        driver = driverFactory.getDriver();
-        currentBrowser = driverFactory.getCurrentBrowser();
-        // Get original scenario name
-        String originalScenarioName = scenario.getName();
-        String updatedScenarioName = originalScenarioName + " [Browser: " + currentBrowser + "]";
+    private void updateTestNameAndHistoryIdForAllure(String newName) {
+        Allure.getLifecycle().updateTestCase(testResult -> testResult.setName(newName));
+        String customHistoryId = generateConsistentHistoryId(newName, currentBrowser);
+        Allure.getLifecycle().updateTestCase(testResult -> testResult.setHistoryId(customHistoryId));
+    }
 
-        // Update Allure test name dynamically
-        AllureLifecycle lifecycle = Allure.getLifecycle();
-        String scenarioId = scenario.getId(); // Unique ID for the scenario
-        lifecycle.updateTestCase(scenarioId, testResult ->
-                testResult.setName(updatedScenarioName)
-        );
-
-        // Optionally, set a parameter for the report
-        Allure.parameter("Browser", currentBrowser);
+    private String generateConsistentHistoryId(String newName, String browserName) {
+        String baseString = newName + browserName;
+        return UUID.nameUUIDFromBytes(baseString.getBytes()).toString();
     }
 
     @Given("I am on the contact page")
     public void navigateToContactPage() {
+        driverFactory = DriverFactory.getInstance();
+        driver = driverFactory.getDriver();
+        currentBrowser = driverFactory.getCurrentBrowser();
         contactPage = ContactPage.load(driver);
     }
 
@@ -77,6 +70,7 @@ public class ContactFormSteps {
     public void navigateToContactPage(String browser) {
         driverFactory = DriverFactory.getInstance(browser);
         driver = driverFactory.getDriver();
+        currentBrowser = driverFactory.getCurrentBrowser();
         contactPage = ContactPage.load(driver);
     }
 
@@ -84,6 +78,7 @@ public class ContactFormSteps {
     public void navigateToContactPageWithNetworkLogs() {
         driverFactory = DriverFactory.getInstance(true);
         driver = driverFactory.getDriver();
+        currentBrowser = driverFactory.getCurrentBrowser();
         contactPage = ContactPage.load(driver);
     }
 
@@ -196,6 +191,7 @@ public class ContactFormSteps {
 
     @After
     public void cleanup(Scenario scenario) {
+        updateTestNameAndHistoryIdForAllure(scenario.getName());
         try {
             if (scenario.isFailed() && driver != null) {
                 logger.info("Test failed, capturing screenshot");
