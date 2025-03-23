@@ -8,11 +8,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        browser: [ chrome, firefox ]
-        headless: [ true, false ]
-
     steps:
       - uses: actions/checkout@v3
       - name: Set up JDK 21
@@ -22,18 +17,14 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
       - name: Run API Tests
         run: mvn test -Dcucumber.filter.tags="@api"
 
-      - name: Run Web Tests
-        run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser=${{ matrix.browser }} -Dheadless=${{ matrix.headless }}
+      - name: Run Web Tests (chrome)
+        run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="chorme" -Dheadless=true
+
+      - name: Run Web Tests (firefox)
+        run: mvn test -Dcucumber.filter.tags="@web" -Dbrowser="firefox" -Dheadless=true
 
       # Create logs directory if it doesn't exist
       - name: Ensure logs directory exists
@@ -65,13 +56,6 @@ jobs:
           allure_history: allure-history
           keep_reports: 20
 
-      - name: Upload Allure Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: allure-results-${{ matrix.browser }}-${{ matrix.headless }}
-          path: target/allure-results
-
       - name: Deploy report to Github Pages
         if: always()
         uses: peaceiris/actions-gh-pages@v3
@@ -79,4 +63,3 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: allure-history
-          destination_dir: allure-report/${{ matrix.browser }}-${{ matrix.headless }}
