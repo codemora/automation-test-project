@@ -32,7 +32,7 @@ Feature: Contact Form Testing
   Scenario: Verify network logs during form submission
     Given I am on the contact page with network logs
     When I fill in the contact form with "Test User" as name and "Test Message" as message
-    And I submit the form
+    And I submit the form and track logs
     Then I should see a success message after waiting
     And I should capture all network requests
     And I should verify API calls are present

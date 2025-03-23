@@ -81,6 +81,12 @@ public class ContactFormSteps {
         contactPage.submitForm();
     }
 
+    @When("I submit the form and track logs")
+    public void submitFormTrackLogs() {
+        driverFactory.newHar();
+        contactPage.submitForm();
+    }
+
     @When("I submit the form with server error occurring")
     public void submitFormWithServerError() {
         setupServerErrorSimulator();
