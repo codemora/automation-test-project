@@ -78,7 +78,12 @@ jobs:
           ls -la target/allure-results/
 
       - name: Generate Allure Report
-        run: mvn allure:report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          allure_results: target/allure-results
+          allure_history: allure-history
+          keep_reports: 20
 
       - name: Deploy report to Github Pages
         if: always()
