@@ -26,9 +26,14 @@ Feature: OpenWeather API Testing
     When I request current weather for "' OR '1'='1"
     Then I should receive a 404 status code
 
-  Scenario: Test invalid API key
-    When I request weather with invalid API key
+  Scenario Outline: Test invalid API key
+    Given I have an invalid API Key: "<invalid_key>"
+    When I request current weather for "London"
     Then I should receive a 401 status code
+    Examples:
+      | invalid_key  |
+      | Afetatesffsd |
+      |              |
 
   Scenario: Test weather and forecast integration
     When I request current weather for "London"
