@@ -4,7 +4,6 @@ import api.services.WeatherService;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import org.junit.Assert;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ public class WeatherAPISteps {
     private String apiKey;
     private Response response;
     private double currentTemp;
+    private String city;
 
     @Given("I have a valid API key")
     public void setValidApiKey() {
@@ -32,15 +32,15 @@ public class WeatherAPISteps {
     }
 
     @When("I request current weather for {string}")
-    @Step("Requesting weather for city: {0}")
     public void requestCurrentWeather(String city) {
+        this.city = city;
         response = WeatherService.getCurrentWeather(city, apiKey);
         logger.info("Weather request sent for city: {}", city);
     }
 
     @When("I request 5-day forecast for {string}")
-    @Step("Requesting 5-day forecast for city: {0}")
     public void requestForecast(String city) {
+        this.city = city;
         response = WeatherService.getForecastWeatherFor5Days(city, apiKey);
         logger.info("Forecast request sent for city: {}", city);
     }
@@ -64,7 +64,7 @@ public class WeatherAPISteps {
         List<?> weatherList = response.jsonPath().getList("weather");
         Assert.assertFalse("Weather response missing weather array or empty",
                 weatherList.isEmpty());
-        Assert.assertNotNull("Weather response missing city name",
+        Assert.assertEquals("Weather response has incorrect city", city,
                 response.jsonPath().get("name"));
         logger.debug("Weather response structure validated");
 
