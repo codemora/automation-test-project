@@ -95,8 +95,9 @@
 
 ## Framework Structure
 📂 **`src/test/java/api`** – API Testing Components
+- **`services/`** – API services (`WeatherService.java`)
 - **`steps/`** – Step definitions
-- **`utils/`** – API utility classes (`APIUtils.java`)
+- **`utils/`** – API utility classes (`RestAssuredUtils.java`)
 
 📂 **`src/test/java/web`** – Web UI Testing Components
 - **`pages/`** – PageObjects
