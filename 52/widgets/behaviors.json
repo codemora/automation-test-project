@@ -1,0 +1,1 @@
+{"total":2,"items":[{"uid":"76fcefc897c0a7b03222fe4aee0f7d8a","name":"Contact Form Testing","statistic":{"failed":0,"broken":0,"skipped":0,"passed":6,"unknown":0,"total":6}},{"uid":"5a8180f1360f6e9ea1d486c7035ff61f","name":"OpenWeather API Testing","statistic":{"failed":0,"broken":0,"skipped":1,"passed":5,"unknown":0,"total":6}}]}
