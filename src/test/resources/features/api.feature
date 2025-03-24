@@ -13,14 +13,33 @@ Feature: OpenWeather API Testing
       | London |
       | Paris  |
 
-  Scenario: Get current weather for invalid city
-    When I request current weather for "InvalidCity123"
-    Then I should receive a 404 status code
+  Scenario Outline: Get current weather for invalid city
+    When I request current weather for "<city>"
+    Then I should receive a <status> status code
+    Examples:
+      |                       city                              | status |
+      | InvalidCity123                                          |   404  |
+      | lllsldkkellsldkflskfksldflklsdflksldkflskfldlfkldkflskd |   404  |
+      |                                                         |   400  |
 
-  Scenario: Get 5-day forecast for valid city
-    When I request 5-day forecast for "London"
+  Scenario Outline: Get 5-day forecast for valid city
+    When I request 5-day forecast for "<city>"
     Then I should receive a 200 status code
     And the response should contain 5-day forecast data
+    Examples:
+      | city  |
+      | Rome  |
+      | Accra |
+
+  Scenario Outline: Get 5-day forecast for invalid city
+    When I request 5-day forecast for "<city>"
+    Then I should receive a <status> status code
+    Examples:
+      |                       city                              | status |
+      | InvalidCity123                                          |   404  |
+      | lllsldkkellsldkflskfksldflklsdflksldkflskfldlfkldkflskd |   404  |
+      |                                                         |   400  |
+
 
   Scenario: Test SQL injection in city parameter
     When I request current weather for "' OR '1'='1"
