@@ -162,7 +162,7 @@
   - **Screenshots on UI test failures**
   - **CI results accessible via GitHub Actions**
 - #### Report Screenshot:
-
+![Allure Report](./src/test/resources/img/report_screenshot.png)
 [View Report](https://codemora.github.io/automation-test-project/55/index.html)
 
 ---
