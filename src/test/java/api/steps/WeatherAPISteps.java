@@ -1,50 +1,53 @@
 package api.steps;
 
-import io.cucumber.java.en.*;
+import api.services.WeatherService;
+import io.cucumber.java.en.Given;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import io.qameta.allure.Step;
 import io.restassured.response.Response;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import api.utils.APIUtils;
+import utils.ConfigUtils;
 
 import java.util.List;
 
 public class WeatherAPISteps {
     private static final Logger logger = LoggerFactory.getLogger(WeatherAPISteps.class);
+    private String apiKey;
     private Response response;
     private double currentTemp;
 
     @Given("I have a valid API key")
-    public void setApiKey() {
-        APIUtils.validateApiKey();
+    public void setValidApiKey() {
+        apiKey = ConfigUtils.getProperty("api.key");
+        logger.info("API Key initialized");
+    }
+
+    @Given("I have an invalid API Key: {string}")
+    public void setInvalidApiKey(String invalidApiKey) {
+        apiKey = invalidApiKey;
         logger.info("API Key initialized");
     }
 
     @When("I request current weather for {string}")
     @Step("Requesting weather for city: {0}")
     public void requestCurrentWeather(String city) {
-        response = APIUtils.getRequest("/weather", city, true);
+        response = WeatherService.getCurrentWeather(city, apiKey);
         logger.info("Weather request sent for city: {}", city);
     }
 
     @When("I request 5-day forecast for {string}")
     @Step("Requesting 5-day forecast for city: {0}")
     public void requestForecast(String city) {
-        response = APIUtils.getRequest("/forecast", city, true);
+        response = WeatherService.getForecastWeatherFor5Days(city, apiKey);
         logger.info("Forecast request sent for city: {}", city);
-    }
-
-    @When("I request weather with invalid API key")
-    @Step("Requesting weather with invalid API key")
-    public void requestWithInvalidKey() {
-        response = APIUtils.getRequest("/weather", "London", false);
-        logger.warn("Request sent with invalid API key");
     }
 
     @When("I store the current temperature")
     public void storeCurrentTemp() {
-        currentTemp = APIUtils.extractTemperature(response);
+        currentTemp = WeatherService.extractTemperature(response);
         logger.info("Stored current temperature: {}", currentTemp);
     }
 
@@ -80,7 +83,7 @@ public class WeatherAPISteps {
 
     @Then("the current temperature should match forecast for today")
     public void verifyIntegration() {
-        double forecastTemp = APIUtils.extractForecastTemperature(response);
+        double forecastTemp = WeatherService.extractForecastTemperature(response);
         double tolerance = 2.0;
         boolean tempMatch = Math.abs(currentTemp - forecastTemp) <= tolerance;
         logger.info("Comparing current temp {} with forecast temp {}", currentTemp, forecastTemp);
